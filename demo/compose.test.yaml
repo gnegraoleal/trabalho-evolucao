@@ -1,0 +1,17 @@
+# Banco descartável exclusivo da suíte Pessoa 2. Não utiliza o volume de desenvolvimento.
+services:
+  postgres-test:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: imarker_test
+      POSTGRES_USER: imarker_test
+      POSTGRES_PASSWORD: imarker-test-local
+    ports:
+      - "127.0.0.1:5434:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imarker_test -d imarker_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 20

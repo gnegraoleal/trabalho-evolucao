@@ -1,2 +1,11 @@
-<p>App main está funcionando (altere em src/app/app.html)</p>
-<router-outlet />
+<header class="navbar"><nav class="nav-inner" aria-label="Navegação principal">
+  <a class="brand" routerLink="/">iMarker</a>
+  <div class="nav-links"><a routerLink="/about">Sobre</a>
+    @if (auth.usuario(); as u) {
+      <a routerLink="/dashboard">Meu mapa</a>
+      @if (u.papel==='ADMIN') { <a routerLink="/admin">Administração</a> }
+      <a routerLink="/users/edit">{{u.username}}</a><button class="secondary" (click)="sair()" [disabled]="saindo()">Sair</button>
+    } @else { <a routerLink="/register">Cadastrar</a><a class="primary" routerLink="/login">Entrar</a> }
+  </div>
+</nav></header>
+<main class="main-container">@if (erro()) { <p class="error" role="alert">{{erro()}}</p> }<router-outlet /></main>

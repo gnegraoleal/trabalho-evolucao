@@ -57,3 +57,7 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## iMarker — Conta e administração
+
+Consulte [PESSOA2.md](../PESSOA2.md) para iniciar PostgreSQL, Spring Boot e Angular, criar o primeiro administrador, verificar os endpoints e executar os testes isolados. O componente de mapa original permanece preservado.

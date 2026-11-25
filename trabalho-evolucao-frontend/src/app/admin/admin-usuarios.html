@@ -1,0 +1,27 @@
+<section class="panel">
+  <div class="section-title"><div><p class="eyebrow">Administração</p><h1>Gerenciar usuários</h1></div><a class="secondary" routerLink="/admin">Indicadores</a></div>
+  <form class="filters" (ngSubmit)="pesquisar()">
+    <div><label for="busca">Pesquisar nome</label><input id="busca" name="busca" [(ngModel)]="busca" maxlength="100" placeholder="Trecho do nome" /></div>
+    <button class="primary" type="submit" [disabled]="carregando() || excluindo()">Pesquisar</button><button class="secondary" type="button" (click)="limpar()" [disabled]="excluindo()">Limpar</button>
+  </form>
+  <div class="filters">
+    <div><label for="sort">Ordenar por</label><select id="sort" [(ngModel)]="sort" (ngModelChange)="ordenar()" [disabled]="!!pesquisa || excluindo()"><option value="id">ID</option><option value="username">Nome</option><option value="loginCount">Número de logins</option><option value="ultimoLogin">Último login</option></select></div>
+    <div><label for="direction">Direção</label><select id="direction" [(ngModel)]="direction" (ngModelChange)="ordenar()" [disabled]="!!pesquisa || excluindo()"><option value="desc">Decrescente</option><option value="asc">Crescente</option></select></div>
+  </div>
+  @if (pesquisa) { <p class="muted">Pesquisa por “{{pesquisa}}”, ordenada por papel e nome.</p> }
+  @if (erro()) { <p class="error" role="alert">{{erro()}}</p> }
+  @if (aviso()) { <p class="success" role="status">{{aviso()}}</p> }
+  @if (carregando()) { <p role="status">Carregando usuários...</p> }
+  @if (dados(); as d) {
+    <div class="overflow-x-auto"><table><thead><tr><th>ID</th><th>Usuário</th><th>Papel</th><th>Logins</th><th>Último login</th><th>Ações</th></tr></thead><tbody>
+      @for (u of d.content; track u.id) { <tr><td>{{u.id}}</td><td>{{u.username}} @if (u.id===auth.usuario()?.id) { <small>(você)</small> }</td><td>{{u.papel==='ADMIN'?'Administrador':'Comum'}}</td><td>{{u.loginCount}}</td><td>{{u.ultimoLogin ? (u.ultimoLogin | date:'dd/MM/yyyy HH:mm') : 'Nunca entrou'}}</td><td><div class="actions"><a class="secondary" [routerLink]="['/admin/usuarios',u.id,'editar']">Editar</a><button class="danger" type="button" [disabled]="u.id===auth.usuario()?.id || excluindo() || carregando()" (click)="pedirExclusao(u)">Excluir</button></div></td></tr> }
+      @empty { <tr><td colspan="6">Nenhum usuário encontrado.</td></tr> }
+    </tbody></table></div>
+    <div class="section-title mt-4"><span>{{d.totalElements}} registros · Página {{d.totalPages ? page+1 : 0}} de {{d.totalPages}} · 100 por página</span><div class="actions"><button class="secondary" [disabled]="page===0 || carregando() || excluindo()" (click)="navegar(page-1)">Anterior</button><button class="secondary" [disabled]="page+1>=d.totalPages || carregando() || excluindo()" (click)="navegar(page+1)">Próxima</button></div></div>
+  }
+  @if (alvo(); as u) {
+    <div class="dialog-backdrop"><section role="alertdialog" aria-modal="true" aria-labelledby="excluir-titulo" class="panel dialog"><h2 id="excluir-titulo">Excluir {{u.username}}?</h2><p>A conta e seus marcadores serão removidos permanentemente. O link público e as sessões deixarão de funcionar.</p>
+    @if (erro()) { <p class="error" role="alert">{{erro()}}</p> }
+    <div class="actions"><button class="secondary" [disabled]="excluindo()" (click)="alvo.set(null)">Cancelar</button><button class="danger" [disabled]="excluindo()" (click)="excluir()">{{excluindo()?'Excluindo...':'Confirmar exclusão'}}</button></div></section></div>
+  }
+</section>

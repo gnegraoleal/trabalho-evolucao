@@ -1,0 +1,16 @@
+<section class="panel">
+  <div class="section-title"><div><p class="eyebrow">Administração</p><h1>Painel administrativo</h1></div><a class="primary" routerLink="/admin/usuarios">Gerenciar usuários</a></div>
+  @if (erro()) { <p class="error" role="alert">{{erro()}}</p><button class="secondary" (click)="carregar()">Tentar novamente</button> }
+  @else if (dados(); as d) {
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6">
+      <div class="metric"><small>Usuários comuns</small><strong>{{d.totalUsuarios}}</strong></div>
+      <div class="metric"><small>Administradores</small><strong>{{d.totalAdministradores}}</strong></div>
+      <div class="metric"><small>Total de contas</small><strong>{{d.totalContas}}</strong></div>
+    </div>
+    <div class="subpanel"><h2>Administradores</h2><ul>@for (u of d.administradores; track u.id) { <li><a [routerLink]="['/admin/usuarios',u.id,'editar']">{{u.username}}</a></li> } @empty { <li>Nenhum administrador.</li> }</ul></div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+      <div class="subpanel"><h2>Dez cadastros mais recentes</h2><ul>@for (u of d.cadastrosRecentes; track u.id) { <li>{{u.username}} <span class="muted">{{u.criadoEm | date:'dd/MM/yyyy HH:mm'}}</span></li> } @empty { <li>Nenhum cadastro.</li> }</ul></div>
+      <div class="subpanel"><h2>Dez últimos logins</h2><p class="muted">Ordenados pelo login anterior (Trackable do legado).</p><ul>@for (u of d.loginsRecentes; track u.id) { <li>{{u.username}} <span class="muted">{{u.ultimoLogin | date:'dd/MM/yyyy HH:mm'}}</span></li> } @empty { <li>Nenhum login registrado.</li> }</ul></div>
+    </div>
+  } @else { <p role="status">Carregando indicadores...</p> }
+</section>
