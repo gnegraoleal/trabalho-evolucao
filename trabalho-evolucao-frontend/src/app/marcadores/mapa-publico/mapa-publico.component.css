@@ -1,0 +1,13 @@
+.pg-publico {
+  --pg-texto: #1c2430; --pg-borda: #c9d1db; --pg-erro: #a31621; --pg-aviso-fundo: #fff4d6; --pg-acento: #0b5cad;
+  color: var(--pg-texto); max-width: 1200px; margin: 0 auto; padding: 1rem;
+}
+@media (prefers-color-scheme: dark) {
+  .pg-publico { --pg-texto: #e6edf3; --pg-borda: #3a4553; --pg-erro: #ff8a93; --pg-aviso-fundo: #3a3017; --pg-acento: #5aa9ff; }
+}
+.pg-publico h1 { font-size: 1.5rem; margin: 0 0 .5rem; overflow-wrap: anywhere; }
+.pg-publico .pg-erro { color: var(--pg-erro); }
+.pg-publico .pg-aviso { background: var(--pg-aviso-fundo); border: 1px solid var(--pg-borda); border-radius: 6px; padding: .6rem .8rem; }
+.pg-publico a { color: var(--pg-acento); }
+.pg-publico :focus-visible { outline: 3px solid var(--pg-acento); outline-offset: 2px; }
+.pg-mapa-publico { height: min(75vh, 700px); min-height: 320px; border: 1px solid var(--pg-borda); border-radius: 8px; }

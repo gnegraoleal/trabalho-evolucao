@@ -1,0 +1,112 @@
+<div class="pg-dashboard">
+  <header class="pg-barra">
+    <h1>Meu mapa</h1>
+    <div class="pg-acoes">
+      <button type="button" class="pg-primario" (click)="abrirNovoPonto()">Adicionar ponto</button>
+      <button type="button" (click)="abrirCompartilhar()">Compartilhar mapa</button>
+    </div>
+  </header>
+
+  <p class="pg-status" role="status" aria-live="polite">{{ anuncio() }}</p>
+
+  @if (avisoMapa()) {
+    <p class="pg-aviso" role="alert">{{ avisoMapa() }}</p>
+  }
+  @if (erroCarga()) {
+    <p class="pg-aviso" role="alert">
+      {{ erroCarga() }}
+      <button type="button" (click)="carregar()">Tentar de novo</button>
+    </p>
+  }
+
+  <div class="pg-layout">
+    <div
+      #mapa
+      class="pg-mapa"
+      role="region"
+      aria-label="Mapa. Setas movem, mais e menos aproximam, Enter adiciona um ponto no centro."
+    ></div>
+
+    <section class="pg-lista" aria-labelledby="pg-titulo-lista">
+      <h2 id="pg-titulo-lista">Seus pontos ({{ marcadores().length }})</h2>
+
+      @if (carregando()) {
+        <p>Carregando…</p>
+      } @else if (marcadores().length === 0) {
+        <p>
+          Você ainda não tem pontos. Clique com o botão direito no mapa, segure o dedo sobre ele
+          ou use “Adicionar ponto”.
+        </p>
+      } @else {
+        <ul>
+          @for (m of marcadores(); track m.id) {
+            <li>
+              <button type="button" class="pg-ver" (click)="destacar(m)">{{ m.titulo }}</button>
+              <button type="button" class="pg-excluir" (click)="excluir(m.id)" [attr.aria-label]="'Excluir ' + m.titulo">
+                Excluir
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+
+  <!-- Novo ponto: <dialog> nativo dá foco preso, Esc e retorno de foco (RNF-08) -->
+  <dialog #dlgPonto class="pg-dialogo" aria-labelledby="pg-dlg-ponto-titulo">
+    <form (ngSubmit)="salvar()" novalidate>
+      <h2 id="pg-dlg-ponto-titulo">Novo ponto</h2>
+
+      <label for="pg-f-titulo">Título</label>
+      <input id="pg-f-titulo" name="titulo" type="text" maxlength="255" required autofocus [(ngModel)]="form.titulo" />
+
+      <label for="pg-f-desc">Descrição (opcional)</label>
+      <textarea id="pg-f-desc" name="descricao" rows="4" [(ngModel)]="form.descricao"></textarea>
+
+      <div class="pg-par">
+        <div>
+          <label for="pg-f-lat">Latitude</label>
+          <input id="pg-f-lat" name="latitude" type="number" step="any" min="-90" max="90" [(ngModel)]="form.latitude" />
+        </div>
+        <div>
+          <label for="pg-f-lng">Longitude</label>
+          <input id="pg-f-lng" name="longitude" type="number" step="any" min="-180" max="180" [(ngModel)]="form.longitude" />
+        </div>
+      </div>
+
+      <div class="pg-atalhos">
+        <button type="button" (click)="usarCentroDoMapa()">Usar o centro do mapa</button>
+        <button type="button" (click)="usarMinhaLocalizacao()">Usar minha localização</button>
+      </div>
+
+      @if (erroForm()) {
+        <p class="pg-erro" role="alert">{{ erroForm() }}</p>
+      }
+
+      <div class="pg-rodape">
+        <button type="button" (click)="fechar(dlgPonto)">Cancelar</button>
+        <button type="submit" class="pg-primario" [disabled]="salvando()">
+          {{ salvando() ? 'Salvando…' : 'Salvar ponto' }}
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Compartilhar mapa -->
+  <dialog #dlgLink class="pg-dialogo" aria-labelledby="pg-dlg-link-titulo">
+    <h2 id="pg-dlg-link-titulo">Compartilhar seu mapa</h2>
+    <p>Quem tiver este endereço poderá ver todos os seus pontos, sem fazer login.</p>
+
+    <label for="pg-f-url">Endereço público</label>
+    <input #campoUrl id="pg-f-url" type="text" readonly [value]="urlPublica()" />
+
+    <p class="pg-ajuda">Ao gerar um novo link, o endereço anterior deixa de funcionar.</p>
+    <p class="pg-status" role="status" aria-live="polite">{{ msgLink() }}</p>
+
+    <div class="pg-rodape">
+      <button type="button" (click)="regenerar()">Gerar novo link</button>
+      <button type="button" class="pg-primario" (click)="copiar()">Copiar link</button>
+      <button type="button" (click)="fechar(dlgLink)">Fechar</button>
+    </div>
+  </dialog>
+</div>

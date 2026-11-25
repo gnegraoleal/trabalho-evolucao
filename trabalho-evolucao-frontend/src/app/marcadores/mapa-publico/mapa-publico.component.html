@@ -1,0 +1,26 @@
+<main class="pg-publico">
+  <h1>Mapa de {{ nome() }}</h1>
+
+  @if (erro()) {
+    <p class="pg-erro" role="alert">{{ erro() }}</p>
+    <p><a href="/">Ir para a página inicial</a></p>
+  } @else if (carregando()) {
+    <p role="status">Carregando mapa…</p>
+  } @else {
+    <p role="status">
+      {{ total() === 1 ? '1 ponto compartilhado' : total() + ' pontos compartilhados' }}. Somente leitura.
+    </p>
+  }
+
+  @if (avisoMapa()) {
+    <p class="pg-aviso" role="alert">{{ avisoMapa() }}</p>
+  }
+
+  <div
+    #mapa
+    class="pg-mapa-publico"
+    role="region"
+    aria-label="Mapa compartilhado. Setas movem, mais e menos aproximam."
+    [style.display]="erro() ? 'none' : 'block'"
+  ></div>
+</main>

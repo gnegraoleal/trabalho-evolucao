@@ -1,0 +1,53 @@
+/* ViewEncapsulation.None: tudo sob .pg-dashboard / .popup-ponto para não vazar. */
+.pg-dashboard {
+  --pg-fundo: #ffffff; --pg-texto: #1c2430; --pg-suave: #5b6675; --pg-borda: #c9d1db;
+  --pg-acento: #0b5cad; --pg-acento-texto: #ffffff; --pg-erro: #a31621; --pg-aviso-fundo: #fff4d6;
+  color: var(--pg-texto); max-width: 1200px; margin: 0 auto; padding: 1rem;
+}
+@media (prefers-color-scheme: dark) {
+  .pg-dashboard {
+    --pg-fundo: #161b22; --pg-texto: #e6edf3; --pg-suave: #9aa7b6; --pg-borda: #3a4553;
+    --pg-acento: #5aa9ff; --pg-acento-texto: #0b1118; --pg-erro: #ff8a93; --pg-aviso-fundo: #3a3017;
+  }
+}
+.pg-barra { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; justify-content: space-between; }
+.pg-barra h1 { margin: 0; font-size: 1.5rem; }
+.pg-acoes { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+.pg-dashboard button { font: inherit; padding: .5rem .9rem; border: 1px solid var(--pg-borda); border-radius: 6px;
+  background: var(--pg-fundo); color: var(--pg-texto); cursor: pointer; }
+.pg-dashboard button.pg-primario { background: var(--pg-acento); border-color: var(--pg-acento); color: var(--pg-acento-texto); }
+.pg-dashboard button:disabled { opacity: .6; cursor: progress; }
+.pg-dashboard :focus-visible, .popup-ponto :focus-visible { outline: 3px solid var(--pg-acento, #0b5cad); outline-offset: 2px; }
+
+.pg-status { min-height: 1.4em; margin: .5rem 0; color: var(--pg-suave); }
+.pg-aviso { background: var(--pg-aviso-fundo); border: 1px solid var(--pg-borda); border-radius: 6px; padding: .6rem .8rem; }
+.pg-erro { color: var(--pg-erro); margin: .5rem 0; }
+.pg-ajuda { color: var(--pg-suave); font-size: .9rem; }
+
+.pg-layout { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .pg-layout { grid-template-columns: minmax(0, 1fr) 300px; } }
+.pg-mapa { height: min(70vh, 640px); min-height: 320px; border: 1px solid var(--pg-borda); border-radius: 8px; }
+
+.pg-lista h2 { font-size: 1.1rem; margin-top: 0; }
+.pg-lista ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-height: min(60vh, 560px); overflow: auto; }
+.pg-lista li { display: flex; gap: .4rem; }
+.pg-lista .pg-ver { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.pg-dialogo { width: min(520px, calc(100vw - 2rem)); border: 1px solid var(--pg-borda); border-radius: 10px; padding: 1.25rem;
+  background: var(--pg-fundo); color: var(--pg-texto); }
+.pg-dialogo::backdrop { background: rgb(0 0 0 / .45); }
+.pg-dialogo h2 { margin-top: 0; font-size: 1.2rem; }
+.pg-dialogo label { display: block; margin: .75rem 0 .25rem; font-weight: 600; }
+.pg-dialogo input, .pg-dialogo textarea { width: 100%; box-sizing: border-box; font: inherit; padding: .5rem;
+  border: 1px solid var(--pg-borda); border-radius: 6px; background: var(--pg-fundo); color: var(--pg-texto); }
+.pg-par { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.pg-atalhos { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .75rem; }
+.pg-rodape { display: flex; gap: .5rem; justify-content: flex-end; flex-wrap: wrap; margin-top: 1rem; }
+
+/* popup do Leaflet (fora do template Angular) */
+.popup-ponto { max-width: 260px; }
+.popup-ponto h3 { margin: 0 0 .4rem; font-size: 1rem; overflow-wrap: anywhere; }
+.popup-ponto .popup-descricao { margin: 0 0 .5rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+.popup-ponto .popup-links { margin: 0 0 .5rem; font-size: .85rem; line-height: 1.6; }
+.popup-ponto .popup-excluir { font: inherit; padding: .35rem .7rem; cursor: pointer; }

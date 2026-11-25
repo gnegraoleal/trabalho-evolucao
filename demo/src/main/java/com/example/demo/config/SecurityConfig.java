@@ -34,7 +34,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.spa())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/", "/home", "/about", "/api/csrf").permitAll()
+                .requestMatchers(HttpMethod.GET, "/", "/home", "/about", "/api/csrf", "/api/public/mapas/*/*").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())

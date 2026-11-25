@@ -40,13 +40,12 @@ class DemoApplicationTests {
 
     @BeforeEach void prepararBanco() {
         jdbc.execute("drop table if exists referencias_teste");
-        jdbc.execute("drop table if exists marcadores");
         tokens.deleteAllInBatch(); usuarios.deleteAllInBatch();
         contas.inicializarAdmin("admin", SENHA);
         comumId = contas.cadastrar(new Cadastro("comum", SENHA, SENHA)).id();
         adminId = usuarios.findByUsernameNormalizado("admin").orElseThrow().getId();
     }
-    @AfterEach void removerFixtureMarcadores() { jdbc.execute("drop table if exists referencias_teste"); jdbc.execute("drop table if exists marcadores"); }
+    @AfterEach void removerFixtureDeRollback() { jdbc.execute("drop table if exists referencias_teste"); }
     private class Browser {
         private final HttpClient http = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
         private final Map<String,String> cookies = new HashMap<>();
@@ -147,8 +146,8 @@ class DemoApplicationTests {
         assertEquals(200,admin.json("PUT","/api/admin/usuarios/"+comumId,editar("comum","USER","")).statusCode());
         assertEquals(401,normal.get("/api/admin/dashboard").statusCode());
         normal.entrar("comum",true);
-        jdbc.execute("create table marcadores (id bigint generated always as identity primary key, usuario_id bigint not null references usuarios(id) on delete cascade)");
-        jdbc.update("insert into marcadores(usuario_id) values (?),(?)",comumId,adminId);
+        criarMarcador(comumId);
+        criarMarcador(adminId);
         assertEquals(204,admin.json("DELETE","/api/admin/usuarios/"+comumId,null).statusCode());
         assertFalse(usuarios.existsById(comumId)); assertTrue(usuarios.existsById(adminId)); assertEquals(0,tokens.count());
         assertEquals(1,jdbc.queryForObject("select count(*) from marcadores",Integer.class));
@@ -170,15 +169,41 @@ class DemoApplicationTests {
     }
     @Test void falhaDeExclusaoPreservaContaMarcadoresETokens() throws Exception {
         Browser b=new Browser(), normal=new Browser(); b.entrar("admin",false); normal.entrar("comum",true);
-        jdbc.execute("create table marcadores (id bigint generated always as identity primary key, usuario_id bigint not null references usuarios(id) on delete cascade)");
         jdbc.execute("create table referencias_teste (usuario_id bigint not null references usuarios(id))");
-        jdbc.update("insert into marcadores(usuario_id) values (?)",comumId);
+        criarMarcador(comumId);
         jdbc.update("insert into referencias_teste(usuario_id) values (?)",comumId);
         assertEquals(409,b.json("DELETE","/api/admin/usuarios/"+comumId,null).statusCode());
         assertTrue(usuarios.existsById(comumId)); assertEquals(1,tokens.count());
         assertEquals(1,jdbc.queryForObject("select count(*) from marcadores",Integer.class));
         assertEquals(200,normal.get("/api/auth/me").statusCode());
     }
+    private void criarMarcador(long usuarioId) {
+        jdbc.update("""
+                insert into marcadores (usuario_id, titulo, latitude, longitude, criado_em)
+                values (?, 'Ponto de teste', 0, 0, current_timestamp)
+                """, usuarioId);
+    }
+
+    @Test void mapaPublicoExibeMarcadorERecusaLinkRevogado() throws Exception {
+        Browser titular = new Browser(), visitante = new Browser(), outraConta = new Browser();
+        titular.entrar("comum", false);
+        outraConta.entrar("admin", false);
+        assertEquals(201, titular.json("POST", "/api/marcadores", """
+                {"titulo":"Praia","latitude":-13,"longitude":-38.5}
+                """).statusCode());
+        assertEquals("[]", outraConta.get("/api/marcadores").body());
+        assertEquals(401, visitante.get("/api/marcadores").statusCode());
+
+        String prefixo = "/api/public/mapas/comum/";
+        String antigo = prefixo + comum().getToken();
+        var mapa = visitante.get(antigo);
+        assertEquals(200, mapa.statusCode());
+        assertTrue(mapa.body().contains("Praia"));
+        assertEquals(200, titular.json("POST", "/api/mapa/link/regenerar", "{}").statusCode());
+        assertEquals(404, visitante.get(antigo).statusCode());
+        assertEquals(200, visitante.get(prefixo + comum().getToken()).statusCode());
+    }
+
     @Test void inicializacaoIdempotente() {
         long total = usuarios.count(); String hash = usuarios.findById(adminId).orElseThrow().getPasswordHash();
         contas.inicializarAdmin("comum", "outraSenha");
@@ -187,8 +212,7 @@ class DemoApplicationTests {
     }
     @Test void cancelarContaEConfirmarSenha() throws Exception {
         Browser b=new Browser();b.entrar("comum",true);
-        jdbc.execute("create table marcadores (id bigint generated always as identity primary key, usuario_id bigint not null references usuarios(id) on delete cascade)");
-        jdbc.update("insert into marcadores(usuario_id) values (?)",comumId);
+        criarMarcador(comumId);
         assertEquals(400,b.json("POST","/api/users/me/cancelar","{\"senhaAtual\":\"errada\"}").statusCode());assertTrue(usuarios.existsById(comumId));
         assertEquals(204,b.json("POST","/api/users/me/cancelar","{\"senhaAtual\":\"senha123\"}").statusCode());
         assertFalse(usuarios.existsById(comumId));assertEquals(0,tokens.count());assertEquals(0,jdbc.queryForObject("select count(*) from marcadores",Integer.class));

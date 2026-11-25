@@ -2,9 +2,7 @@
 
 ## Entrega
 
-Código das duas etapas reconstruído a partir de `trabalho-evolucao-main.zip` (infraestrutura da Pessoa 1). O ZIP intermediário da conversa anterior não estava recuperável. Foram preservados o componente Leaflet, o proxy Angular, a configuração CORS, o Compose de desenvolvimento, as versões do `pom.xml`, `package.json` e o lockfile original. O painel `/dashboard` redireciona provisoriamente ao mapa existente; a funcionalidade de marcadores e compartilhamento público é responsabilidade da Pessoa 3.
-
-**Situação: código escrito, verificação sintática e testes isolados de política aprovados; build e integração de frameworks ainda não validados.** Não publicar sem executar os testes completos.
+Conta e administração integradas ao mapa Leaflet da Pessoa 3. Veja o roteiro em `LEIA-ME.md`.
 
 ## Como executar (Windows / PowerShell)
 
@@ -60,7 +58,7 @@ Acesse `http://localhost:4200`. O proxy `/api` encaminha ao backend em `localhos
 - Login nativo Spring Security, sessão JSESSIONID e CSRF para SPA. Cadastro não autentica automaticamente. Login inválido não cria nova sessão. Contadores, data e IP de login atual e anterior; login anterior no primeiro acesso recebe o mesmo instante do atual, como Trackable. Restaurar uma sessão via Remember Me registra nova autenticação, mas requisitar normalmente não incrementa o contador.
 - Remember Me integrado ao filtro Spring, persistência em `persistent_logins`, segredo aleatório com hash SHA-256, rotação a cada restauração, duração de 14 dias renovável. A versão das credenciais é verificada antes da autorização. Cookies de sessão e Remember Me HttpOnly e SameSite=Lax; configure Secure/HTTPS na implantação. O frontend não armazena senhas ou tokens em localStorage.
 - Logout revoga o token apresentado e invalida a sessão. Troca de nome, senha ou papel, e cancelamento, revogam tokens/sessões afetadas. Após qualquer envio válido do formulário do próprio perfil, o titular deverá autenticar-se novamente, inclusive se não houver alteração efetiva. Edição administrativa sem alterações não revoga credenciais.
-- Perfil exige senha atual; nova senha e confirmação vazias mantêm o hash vigente. Cancelamento voluntário exige senha atual e confirmação na interface (CA-06; integração real de mapas pendente).
+- Perfil exige senha atual; nova senha e confirmação vazias mantêm o hash vigente. Cancelamento voluntário exige senha atual e confirmação na interface (CA-06).
 - Páginas Inicial e Sobre, navbar dinâmica, formulários e guards.
 
 ### Etapa 2
@@ -116,12 +114,10 @@ Mantida a estratégia `spring.jpa.hibernate.ddl-auto=update` de desenvolvimento.
 
 ## Integração com a Pessoa 3
 
-- Entidade `com.example.demo.entity.Usuario`, PK `Long id`, tabela `usuarios`. Obtenção interna: `UsuarioService.obter(Long id)` ou `UsuarioRepository.findById`. Principal: `@AuthenticationPrincipal ContaPrincipal principal`, usar `principal.id()` e nunca confiar em ID de titular enviado pelo navegador.
-- Campo `token` é o token atual de compartilhamento. Obtenção do usuário pelo nome normalizado: `UsuarioRepository.findByUsernameNormalizado(...)`, usando `UsuarioPolicy.normalizar(...)`. Não publicar entidade inteira. As operações de marcador devem conferir propriedade, e a rota pública deve permitir somente leitura. A rota pública deverá ser liberada explicitamente na configuração SecurityConfig quando definida pela Pessoa 3.
-- Contrato de persistência: `marcadores.usuario_id` referencia `usuarios.id`, NOT NULL, FK com ON DELETE CASCADE e índice. Script de integração em `demo/integracao/marcadores-fk.sql` para aplicar após a tabela ser criada, apenas se uma FK equivalente não existir. Não cria nem altera o modelo de marcadores da Pessoa 3.
-- O serviço de exclusão verifica se a tabela `marcadores` existe no schema corrente. Se existir, remove os registros por `usuario_id` dentro da mesma transação antes de excluir a conta; a FK em cascata deve existir para garantir também a integridade sob inserções concorrentes. Se não existir, a exclusão de conta funciona no projeto atual. Um schema incompatível requer alinhamento antes da integração; não há garantia de exclusão para tabelas com outros nomes/relacionamentos não informados.
-- Após exclusão, a conta deixa de existir e o endpoint de compartilhamento deverá negar o link antigo. Após renomear, o link com nome antigo também deve falhar (se outro usuário reutilizar o nome, token distinto impedirá acesso). Esses fluxos reais ainda dependem da implementação pública da Pessoa 3.
-- A suíte de integração usa uma tabela mínima de marcadores em banco de testes para exercitar cascata e rollback, mas isso não substitui a integração com a implementação definitiva.
+- O mapa privado abre em `/dashboard` e `/mapa` redireciona para ele.
+- A leitura pública usa `/mapa/:nomeUsuario/:token` e o token criado no cadastro em `usuarios.token`.
+- A associação `marcadores.usuario_id` é obrigatória. O Hibernate cria a FK em cascata em um banco novo. Em banco existente, confira a regra da FK conforme `LEIA-ME.md`.
+- A exclusão e o cancelamento de conta removem os pontos na mesma transação. O teste usa a tabela real de marcadores.
 
 ## Testes
 
@@ -163,42 +159,12 @@ Testes escritos: política de nomes/senhas, AuthService (sequência CSRF/login/m
 3. Alterar perfil com senha atual inválida e válida. Conferir que senha omitida mantém o hash e que sessões antigas não funcionam.
 4. Autenticar conta comum e acessar `/admin` e `/api/admin/dashboard`; ambos devem impedir acesso. Entrar com administrador e conferir indicadores, lista, busca, ordenação e paginação.
 5. Editar conta comum, testar senha curta e nome repetido (estado preservado), promover a ADMIN e rebaixar; testar a sessão anterior dessa conta.
-6. Tentar autoexclusão pelo painel, inclusive via API. Excluir terceiro com marcadores e conferir banco. Após integração da Pessoa 3, testar link público antigo. Testar cancelamento voluntário do titular.
+6. Tentar autoexclusão pelo painel, inclusive via API. Excluir terceiro com marcadores e conferir banco. Depois da exclusão, testar o link público antigo. Testar cancelamento voluntário do titular.
 7. Validar o uso de HTTPS e atributos Secure dos cookies em implantação publicada; conferir que respostas de contas não expõem hash, token ou IP.
 
-## Resultados efetivamente obtidos na geração do ZIP
+## Verificação da entrega integrada
 
-| Verificação | Resultado |
-|---|---|
-| Java: análise sintática com JavacTask.parse | 27 arquivos, 0 erros sintáticos |
-| Java: política isolada compilada com javac 21 | 19 verificações aprovadas |
-| TypeScript: transpileModule com TS 5.8.3 | 18 arquivos, 0 erros sintáticos |
-| TypeScript: política isolada | 15 verificações aprovadas |
-| Maven Wrapper / JUnit | BLOQUEADO — download da distribuição Maven falhou; DNS do repositório indisponível |
-| npm ci | BLOQUEADO — engine Node 22.16.0 incompatível com lockfile e pacote zod não disponível no cache |
-| Build do backend / build Angular / Vitest | NÃO EXECUTADOS — dependências e runtimes indisponíveis |
-| PostgreSQL / Docker / testes HTTP reais | NÃO EXECUTADOS — Docker e PostgreSQL indisponíveis no ambiente |
-| Integração com marcadores e link público reais | PENDENTE — Pessoa 3 |
-
-Ambiente da geração: Java 21.0.12.1 (projeto exige 25), Node 22.16.0, npm 10.9.2, TypeScript global 5.8.3 (projeto usa ~6.0.2). Não há garantia de resolução de símbolos Java/Spring, type-check completo TypeScript, compilação dos templates Angular ou comportamento em execução. Não contabilizar testes JUnit/Vitest como aprovados.
-
-Verificações independentes reproduzíveis em ambiente Unix com JDK e Node/TypeScript:
-
-```bash
-bash scripts/verificar-politica-java.sh
-NODE_PATH=$(npm root -g) node scripts/verificar-politica-ts.cjs
-```
-
-## Rastreabilidade (checklist original)
-
-| Item | Situação |
-|---|---|
-| Entidade Usuario, nome, unicidade e senha | Código implementado; regras isoladas aprovadas; banco pendente |
-| Cadastro, login, lembrar sessão e logout Angular/Spring | Código implementado; execução integrada pendente |
-| Hash e senha atual para alteração de perfil | Código implementado; JUnit e integração pendentes |
-| Páginas Inicial e Sobre | Código implementado; build Angular pendente |
-| Testar duplicidade, senha incorreta, perfil e rotas | Testes escritos, parte independente executada; suíte integral pendente |
-| Painel administrativo RF-13 a RF-17 (parcela administrativa) | Código implementado; integração e testes pendentes, dependência da Pessoa 3 para mapa/links |
+O roteiro em `LEIA-ME.md` cobre a execução e os testes das entregas combinadas. O build do Angular, os 21 testes automatizados do frontend e os 31 testes do Spring passaram. A suíte HTTP usou PostgreSQL 17. O caso de mapa público da suíte HTTP cobre a criação do ponto pelo titular, a separação entre contas e a revogação do endereço antigo.
 
 ## Referências técnicas de compatibilidade consultadas
 

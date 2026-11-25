@@ -80,6 +80,14 @@ public class UsuarioService {
         return Resumo.de(u);
     }
     @Transactional
+    public Usuario regenerarTokenMapa(ContaPrincipal principal) {
+        lock.adquirir();
+        Usuario usuario = validarSessao(principal);
+        usuario.setToken(aleatorio());
+        return usuario;
+    }
+
+    @Transactional
     public void cancelar(ContaPrincipal principal, String senhaAtual) {
         lock.adquirir(); Usuario u = validarSessao(principal);
         conferirSenhaAtual(u, senhaAtual); excluirConta(u);
