@@ -28,7 +28,11 @@ export class MapView {
   constructor(private readonly el: HTMLElement, private readonly opcoes: MapViewOpcoes) {
     this.map = L.map(el, { keyboard: true }).setView(CENTRO_PADRAO, ZOOM_PADRAO);
 
-    const tiles = L.tileLayer(TILES_URL, { maxZoom: 19, attribution: ATRIBUICAO }).addTo(this.map);
+    const tiles = L.tileLayer(TILES_URL, {
+      maxZoom: 19,
+      attribution: ATRIBUICAO,
+      referrerPolicy: 'strict-origin',
+    }).addTo(this.map);
     tiles.on('tileerror', () => {
       if (this.avisouTiles) return;
       this.avisouTiles = true;

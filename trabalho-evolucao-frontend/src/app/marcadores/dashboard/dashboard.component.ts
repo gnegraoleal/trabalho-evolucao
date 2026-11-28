@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, ViewEncapsulation, computed, inject, signal,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { coordenadasValidas, posicaoAtual, urlMapaPublico, validarTitulo } from '../geo-utils';
 import { LinkPublico, Marcador, paraPonto } from '../marcador.model';
 import { MarcadorService } from '../marcador.service';
@@ -31,6 +31,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('mapa', { static: true }) private mapaEl!: ElementRef<HTMLElement>;
   @ViewChild('dlgPonto', { static: true }) private dialogoPonto!: ElementRef<HTMLDialogElement>;
+  @ViewChild('formPonto', { static: true }) private formPonto!: NgForm;
   @ViewChild('dlgLink', { static: true }) private dialogoLink!: ElementRef<HTMLDialogElement>;
   @ViewChild('campoUrl', { static: true }) private campoUrl!: ElementRef<HTMLInputElement>;
 
@@ -102,6 +103,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
       ? { lat: latitude, lng: longitude }
       : this.mapView!.centroAtual();
     this.form = { titulo: '', descricao: '', latitude: arredondar(c.lat), longitude: arredondar(c.lng) };
+    this.formPonto.resetForm(this.form);
     this.erroForm.set(null);
     const dlg = this.dialogoPonto.nativeElement;
     if (!dlg.open) dlg.showModal(); // o foco volta sozinho ao elemento de origem ao fechar
@@ -114,7 +116,9 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   }
 
   async usarMinhaLocalizacao(): Promise<void> {
+    const formulario = this.form;
     const pos = await posicaoAtual();
+    if (this.form !== formulario) return;
     if (!pos) {
       this.erroForm.set('Não foi possível obter sua localização. Digite as coordenadas ou use o centro do mapa.');
       return;

@@ -54,7 +54,7 @@
 
   <!-- Novo ponto: <dialog> nativo dá foco preso, Esc e retorno de foco (RNF-08) -->
   <dialog #dlgPonto class="pg-dialogo" aria-labelledby="pg-dlg-ponto-titulo">
-    <form (ngSubmit)="salvar()" novalidate>
+    <form #formPonto="ngForm" (ngSubmit)="salvar()" autocomplete="off" novalidate>
       <h2 id="pg-dlg-ponto-titulo">Novo ponto</h2>
 
       <label for="pg-f-titulo">Título</label>
